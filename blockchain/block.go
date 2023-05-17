@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"crypto/sha256"
 	"go-chain/constcoe"
+	"go-chain/merkletree"
+	"go-chain/transaction"
 	"go-chain/utils"
 	"math"
 	"math/big"
@@ -16,7 +18,8 @@ type Block struct {
 	PrevHash     []byte
 	Target       []byte
 	Nonce        int64
-	Transactions []*Transaction
+	Transactions []*transaction.Transaction
+	MTree        *merkletree.MerkleTree
 }
 
 func (b *Block) GetTarget() []byte {
@@ -83,13 +86,13 @@ func (b *Block) BackTrasactionSummary() []byte {
 }
 
 func (b *Block) SetHash() {
-	information := bytes.Join([][]byte{utils.ToHexInt(b.Timestamp), b.PrevHash, b.Target, utils.ToHexInt(b.Nonce), b.BackTrasactionSummary()}, []byte{})
+	information := bytes.Join([][]byte{utils.ToHexInt(b.Timestamp), b.PrevHash, b.Target, utils.ToHexInt(b.Nonce), b.BackTrasactionSummary(), b.MTree.RootNode.Data}, []byte{})
 	hash := sha256.Sum256(information)
 	b.Hash = hash[:]
 }
 
-func CreateBlock(prevhash []byte, txs []*Transaction) *Block {
-	block := Block{time.Now().Unix(), []byte{}, prevhash, []byte{}, 0, txs}
+func CreateBlock(prevhash []byte, txs []*transaction.Transaction) *Block {
+	block := Block{time.Now().Unix(), []byte{}, prevhash, []byte{}, 0, txs, merkletree.CrateMerkleTree(txs)}
 	block.Target = block.GetTarget()
 	block.Nonce = block.FindNonce()
 	block.SetHash()
@@ -97,6 +100,6 @@ func CreateBlock(prevhash []byte, txs []*Transaction) *Block {
 }
 
 func GenesisBlock(address []byte) *Block {
-	tx := BaseTx(address)
-	return CreateBlock([]byte{}, []*Transaction{tx})
+	tx := transaction.BaseTx(address)
+	return CreateBlock([]byte{}, []*transaction.Transaction{tx})
 }

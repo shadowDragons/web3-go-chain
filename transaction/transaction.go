@@ -1,4 +1,4 @@
-package blockchain
+package transaction
 
 import (
 	"bytes"
@@ -62,11 +62,10 @@ func (out *TxOutput) ToAddressRight(address []byte) bool {
 	return bytes.Equal(out.ToAddress, address)
 }
 
-func CreateTransaction(from, to []byte, amount int) (*Transaction, bool) {
+func CreateTransaction(from, to []byte, amount int, acc int, validOutputs map[string]int) (*Transaction, bool) {
 	var inputs []TxInput
 	var outputs []TxOutput
 
-	acc, validOutputs := CreateBlockChain().FindSpendableOutputs(from, amount)
 	if acc < amount {
 		fmt.Println("Not enough coins!")
 		return &Transaction{}, false

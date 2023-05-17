@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"go-chain/blockchain"
+	"go-chain/transaction"
 	"go-chain/utils"
 	"os"
 	"runtime"
@@ -53,12 +54,13 @@ func (cli *CommandLine) getBlockChainInfo() {
 }
 
 func (cli *CommandLine) send(from, to string, amount int) {
-	tx, ok := blockchain.CreateTransaction([]byte(from), []byte(to), amount)
+	acc, validOutputs := blockchain.CreateBlockChain().FindSpendableOutputs([]byte(from), amount)
+	tx, ok := transaction.CreateTransaction([]byte(from), []byte(to), amount, acc, validOutputs)
 	if !ok {
 		fmt.Println("Failed to create transaction")
 		return
 	}
-	tp := blockchain.CreateTransactionPool()
+	tp := transaction.CreateTransactionPool()
 	tp.AddTransaction(tx)
 	tp.SaveFile()
 	fmt.Println("Success!")

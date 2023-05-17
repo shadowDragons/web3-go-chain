@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"go-chain/constcoe"
+	"go-chain/transaction"
 	"go-chain/utils"
 	"io/ioutil"
 	"os"
@@ -34,8 +35,8 @@ func CreateBlockChain() *BlockChain {
 }
 
 // blockchain.go
-func (bc *BlockChain) FindUnspentTransactions(address []byte) []Transaction {
-	var unSpentTxs []Transaction
+func (bc *BlockChain) FindUnspentTransactions(address []byte) []transaction.Transaction {
+	var unSpentTxs []transaction.Transaction
 	spentTxs := make(map[string][]int) // can't use type []byte as key value
 	for idx := len(bc.Blocks) - 1; idx >= 0; idx-- {
 		block := bc.Blocks[idx]
@@ -113,13 +114,13 @@ Work:
 }
 
 func (bc *BlockChain) RunMine() {
-	transactionPool := CreateTransactionPool()
+	transactionPool := transaction.CreateTransactionPool()
 	//In the near future, we'll have to validate the transactions first here.
 	candidateBlock := CreateBlock(bc.LastHash, transactionPool.PubTx) //PoW has been done here.
 	if candidateBlock.ValidatePoW() {
 		bc.AddBlock(candidateBlock)
 		bc.SaveFile()
-		err := RemoveTransactionPoolFile()
+		err := transaction.RemoveTransactionPoolFile()
 		utils.Handle(err)
 		return
 	} else {
